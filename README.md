@@ -4,6 +4,9 @@
 팀원 : 4명
 
 개발기간 : 2022.04 ~ 2022.11
+
+영상 : https://www.youtube.com/watch?v=pfqBOrW_SG8
+
 <br><br>
 
 # 역할
