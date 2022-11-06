@@ -1,0 +1,403 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>SB Admin 2 - Dashboard</title>
+    <!-- Core theme CSS (includes Bootstrap)-->
+    <link href="{% static '/css/bootstrap.min.css' %}" rel="stylesheet">
+    <!-- Custom fonts for this template-->
+    <link href="{% static '/mypage/vendor/fontawesome-free/css/all.min.css' %}" rel="stylesheet" type="text/css">
+    <link
+            href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
+            rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+            integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+
+    <!-- Custom styles for this template-->
+    <link href="{% static '/mypage/css/sb-admin-2.min.css' %}" rel="stylesheet">
+    <style>
+        #loadingbtn {
+        {#display: none;#} width: 80%;
+            height: 500px;
+            align-content: center;
+        }
+
+        .live {
+            display: none;
+        }
+    </style>
+</head>
+
+<body id="page-top">
+
+<!-- Page Wrapper -->
+<div id="wrapper">
+    {% include "mypage/fragment/sidebar.html" %}
+
+
+    <!-- Content Wrapper -->
+    <div id="content-wrapper" class="d-flex flex-column">
+
+        <!-- Main Content -->
+        <div id="content">
+            {% include "mypage/fragment/header.html" %}
+
+
+            <div class="container">
+                <ul class="nav nav-tabs nav-pills nav-justified" id="myTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="tab" data-bs-toggle="tab" data-bs-target="#home"
+                                type="button" role="tab" aria-controls="home" aria-selected="true" style="width: 100%">
+                            실시간 스트리밍
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="tab" data-bs-toggle="tab" data-bs-target="#profile"
+                                type="button" role="tab" aria-controls="profile" aria-selected="false"
+                                style="width: 100%">정책설정
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="tab" data-bs-toggle="tab" data-bs-target="#contact"
+                                type="button" role="tab" aria-controls="contact" aria-selected="false"
+                                style="width: 100%">알림
+                        </button>
+                    </li>
+                </ul>
+                <div class="tab-content" id="myTabContent">
+                    <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
+                        <div align="center">
+                            <img id="livecam" class="live" width="80%" src="{% url 'video' user.username id %}">
+                            <button class="btn btn-primary" id="loadingbtn" type="button" disabled>
+                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                Loading...
+                            </button>
+                        </div>
+                        <div align="center">
+                            <button class="btn btn-lg btn-primary" id="recordingBtn" onclick="videorecording()">녹화시작
+                            </button>
+                            <button class="btn btn-lg btn-primary" onclick="capture()">화면캡처</button>
+                            <button class="btn btn-lg btn-primary" onclick="disconnect()">연결끓기</button>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
+                        <br>
+                        <div class="card">
+                            <div class="card-body">
+                                <h3 class="card-title">화재 감지
+                                    {% if policy.fire == 1 %}
+                                        <span class="badge rounded-pill bg-success">ON</span>
+                                    {% else %}
+                                        <span class="badge rounded-pill bg-secondary">OFF</span>
+                                    {% endif %}
+                                </h3>
+                                <p class="card-text">화재 발생을 감지합니다.</p>
+                                {% if policy.fire == 1 %}
+                                    <button onclick="location.href='/cctv/config/mode/fire/live/{{ camid }}';"
+                                            type="button" class="btn btn-primary">OFF 설정
+                                    </button>
+                                {% else %}
+                                    <button onclick="location.href='/cctv/config/mode/fire/live/{{ camid }}';"
+                                            type="button" class="btn btn-primary">ON 설정
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <br>
+                        <div class="card">
+                            <div class="card-body">
+                                <h3 class="card-title">사람 감지
+                                    {% if policy.person == 1 %}
+                                        <span class="badge rounded-pill bg-success">ON</span>
+                                    {% else %}
+                                        <span class="badge rounded-pill bg-secondary">OFF</span>
+                                    {% endif %}
+                                </h3>
+                                <p class="card-text">사람 감지수가 {{ policy.person_cnt }}명보다 적음을 감지합니다.</p>
+                                <form action="/cctv/config/mode/person/cnt/live/{{ camid }}" method="post"
+                                      id="personCntForm">
+                                    {% csrf_token %}
+                                    <input value="{{ policy.person_cnt }}" name="cnt" type="number" min="2" max="10">
+                                </form>
+                                <button class="btn btn-primary" type="submit" form="personCntForm">사람수 설정</button>
+                                <br>
+                                {% if policy.person == 1 %}
+                                    <button onclick="location.href='/cctv/config/mode/person/live/{{ camid }}';"
+                                            type="button" class="btn btn-primary">OFF 설정
+                                    </button>
+                                {% else %}
+                                    <button onclick="location.href='/cctv/config/mode/person/live/{{ camid }}';"
+                                            type="button" class="btn btn-primary">ON 설정
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <br>
+                        <div class="card">
+                            <div class="card-body">
+                                <h3 class="card-title">쓰러짐 감지
+                                    {% if policy.falldown == 1 %}
+                                        <span class="badge rounded-pill bg-success">ON</span>
+                                    {% else %}
+                                        <span class="badge rounded-pill bg-secondary">OFF</span>
+                                    {% endif %}
+                                </h3>
+                                <p class="card-text">사람의 쓰러짐, 넘어짐, 실신을 감지합니다.</p>
+                                {% if policy.falldown == 1 %}
+                                    <button onclick="location.href='/cctv/config/mode/falldown/live/{{ camid }}';"
+                                            type="button" class="btn btn-primary">OFF 설정
+                                    </button>
+                                {% else %}
+                                    <button onclick="location.href='/cctv/config/mode/falldown/live/{{ camid }}';"
+                                            type="button" class="btn btn-primary">ON 설정
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <br>
+                        <div class="card">
+                            <div class="card-body">
+                                <h3 class="card-title">헬멧 미착용 감지
+                                    {% if policy.helmet == 1 %}
+                                        <span class="badge rounded-pill bg-success">ON</span>
+                                    {% else %}
+                                        <span class="badge rounded-pill bg-secondary">OFF</span>
+                                    {% endif %}
+                                </h3>
+                                <p class="card-text">헬멧 미착용 여부를 판단합니다.</p>
+                                {% if policy.helmet == 1 %}
+                                    <button onclick="location.href='/cctv/config/mode/helmet/live/{{ camid }}';"
+                                            type="button" class="btn btn-primary">OFF 설정
+                                    </button>
+                                {% else %}
+                                    <button onclick="location.href='/cctv/config/mode/helmet/live/{{ camid }}';"
+                                            type="button" class="btn btn-primary">ON 설정
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="contact" role="tabpanel" aria-labelledby="contact-tab">
+                        <h1>미확인 알림</h1>
+                        <div style="overflow:scroll; width:100%; height:400px">
+                            {% for alarm in alarmList_0 %}
+                                <div class="alert alert-danger" role="alert">
+                                    <h4 class="alert-heading">{{ alarm.type }}</h4>
+                                    <p>탐지 시간 : {{ alarm.time }}</p>
+                                    <hr>
+                                    <p class="mb-0"><a href="/mypage/detect/{{ alarm.did.id }}/">자세한 내용 보기</a></p>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <hr>
+                        <h1>확인 알림</h1>
+                        <div style="overflow:scroll; width:100%; height:200px;">
+                            {% for alarm in alarmList_1 %}
+                                <div class="alert alert-dark" role="alert">
+                                    <h4 class="alert-heading">{{ alarm.type }}</h4>
+                                    <p>탐지 시간 : {{ alarm.time }}</p>
+                                    <hr>
+                                    <p class="mb-0"><a href="/mypage/detect/{{ alarm.did.id }}">자세한 내용 보기</a></p>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+        <!-- End of Main Content -->
+
+
+        {% include "mypage/fragment/footer.html" %}
+
+    </div>
+    <!-- End of Content Wrapper -->
+
+</div>
+<!-- End of Page Wrapper -->
+
+<!-- Scroll to Top Button-->
+<a class="scroll-to-top rounded" href="#page-top">
+    <i class="fas fa-angle-up"></i>
+</a>
+
+<!-- Logout Modal-->
+<div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                <a class="btn btn-primary" href="login.html">Logout</a>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ========================= JS here ========================= -->
+<script src="{% static '/js/bootstrap.min.js' %}"></script>
+<script src="{% static '/js/wow.min.js' %}"></script>
+<script src="{% static '/js/tiny-slider.js' %}"></script>
+<script src="{% static '/js/glightbox.min.js' %}"></script>
+<script src="{% static '/js/count-up.min.js' %}"></script>
+<script src="{% static '/js/main.js' %}"></script>
+
+<!-- Bootstrap core JavaScript-->
+<script src="{% static '/mypage/vendor/jquery/jquery.min.js' %}"></script>
+<script src="{% static '/mypage/vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+
+<!-- Core plugin JavaScript-->
+<script src="{% static '/mypage/vendor/jquery-easing/jquery.easing.min.js' %}"></script>
+
+<!-- Custom scripts for all pages-->
+<script src="{% static '/mypage/js/sb-admin-2.min.js' %}"></script>
+
+
+</body>
+
+</html>
+<script>
+    var un = '{{user.username}}';
+    var id = '{{ id }}';
+
+    const btnElement = document.getElementById('recordingBtn');
+
+    $.ajax({
+        url: "/cctv/ajax/config/rc/" + un + "/" + id + "/",
+        type: "POST",
+        dataType: "json",
+        data: {'send_data': un},
+        success: function (data) {
+            if (data['send_data'] == 1) {
+                var html1
+                    = '<span class="spinner-grow spinner-grow-sm" role="status" aria-hidden="true"></span>Recording';
+
+                btnElement.innerHTML = html1;
+            } else {
+                var html1
+                    = '녹화하기';
+
+                btnElement.innerHTML = html1;
+            }
+        },
+        error: function () {
+            alert("에러 발생");
+        }
+    })
+
+    function videorecording() {
+        const btnElement = document.getElementById('recordingBtn');
+        $.ajax({
+            url: "/cctv/ajax/config/rc/" + un + "/" + id + "/",
+            type: "POST",
+            dataType: "json",
+            data: {'send_data': un},
+            success: function (data) {
+                if (data['send_data'] == 1) {
+                    var html1
+                        = '녹화하기';
+
+                    btnElement.innerHTML = html1;
+                } else {
+                    var html1
+                        = '<span class="spinner-grow spinner-grow-sm" role="status" aria-hidden="true"></span>Recording';
+
+                    btnElement.innerHTML = html1;
+                }
+            },
+            error: function () {
+                alert("에러 발생");
+            }
+        })
+
+        $.ajax({
+            url: "/cctv/ajax/videoRC/" + un + "/" + id + "/",
+            type: "POST",
+            dataType: "json",
+            data: {'send_data': un},
+            success: function (result) {
+                if (result) {
+
+                } else {
+                    alert("잠시 후에 시도해주세요.");
+                }
+            },
+            error: function () {
+                alert("에러 발생");
+            }
+        })
+    }
+
+    function capture() {
+        $.ajax({
+            url: "/cctv/ajax/capture/" + un + "/" + id + "/",
+            type: "POST",
+            dataType: "json",
+            data: {'send_data': un},
+            success: function (result) {
+                if (result) {
+                    alert("저장되었습니다.");
+                } else {
+                    alert("잠시 후에 시도해주세요.");
+                }
+            },
+            error: function () {
+                alert("에러 발생");
+            }
+        })
+    }
+
+    function disconnect() {
+        $.ajax({
+            url: "/cctv/ajax/disconnect/" + un + "/" + id + "/",
+            type: "POST",
+            dataType: "json",
+            data: {'send_data': un},
+            success: function (result) {
+                if (result) {
+                    alert("저장되었습니다.");
+                } else {
+                    alert("잠시 후에 시도해주세요.");
+                }
+            },
+            error: function () {
+                alert("에러 발생");
+            }
+        })
+    }
+
+    setInterval(function () {
+        $.ajax({
+            url: '/cctv/ajax/config/' + un + "/" + id + "/",
+            type: "POST",
+            dataType: "json",
+            data: {'send_data': un},
+            success: function (data) {
+                console.log(data);
+                if (data['send_data'] == "1") {
+                    $("#loadingbtn").css("display", "none");
+                    $(".live").css("display", "inline");
+                } else {
+                    $(".live").css("display", "none");
+                    $("#loadingbtn").css("display", "inline");
+                }
+            }
+        })
+    }, 1000);
+</script>
