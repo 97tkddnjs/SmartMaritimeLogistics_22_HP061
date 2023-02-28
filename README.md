@@ -13,10 +13,12 @@
 
 # 역할
 
-- 장고 프레임워크를 이용한 웹서버 개발 및 인공지능 알고리즘 웹서버에 적용 
+- 팀장(기술 결정 및 요구사항 분석 및 정의)
+- 장고 프레임워크를 이용한 웹서버 개발
+- mediapipe의 pose estimation과 GRU 모델을 통한 action recognition 알고리즘 개발 
 - DB 스키마 설계 
-- char js를 사용한 사고 통계서비스 개발
-- YOLO custom train
+- konply 를 이용한 뉴스 데이터 분석
+
 <br><br>
 
 # 영상 처리 기반 항만 안전 통합 플랫폼
